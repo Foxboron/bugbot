@@ -48,6 +48,7 @@ poll_interval = 10  # minutes
 april_fools = False
 soup_parse = 'lxml'
 
+
 class TestBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
 
@@ -61,14 +62,14 @@ class TestBot(irc.bot.SingleServerIRCBot):
         self.connection.add_global_handler("ping", self.on_ping)
 
         self.channel = irc_channel
-        #if conf.password:
+        # if conf.password:
         #    self.server_list[0].password = conf.password
-        #self.connection.add_global_handler(302, self.on_userhost)
+        # self.connection.add_global_handler(302, self.on_userhost)
         self.mute = False
         self.recurring_interval = 0
 
     def on_userhost(self, c, e):
-        user,_,host = e.arguments[0].partition('=+')
+        user, _, host = e.arguments[0].partition('=+')
         user = user.strip()
         host = host.strip()
         stateful.userhosts[user] = host
@@ -80,9 +81,9 @@ class TestBot(irc.bot.SingleServerIRCBot):
         print('signing in...')
         time.sleep(3)
         c.privmsg('NickServ', "identify " + nickserv_identify)
-        #if conf.channel_key:
+        # if conf.channel_key:
         #    c.join(self.channel, key=conf.channel_key)
-        #else:
+        # else:
         #    c.join(self.channel)
         time.sleep(3)
         c.join(self.channel)
@@ -123,12 +124,13 @@ class TestBot(irc.bot.SingleServerIRCBot):
         else:
             raise
 
+
 def handle_message(priv, connection, event):
     chan = event.target
     nick = event.source.nick
     text = event.arguments[0]
     if not priv:
-        #sendto = None
+        # sendto = None
         sendto = chan
     else:
         sendto = nick
@@ -158,17 +160,19 @@ def handle_message(priv, connection, event):
     if command == 'mute':
         bot.toggle_mute()
     if command == 'interval':
-        #bot.set_interval(text)
+        # bot.set_interval(text)
         bot.send('Disabled because this irclib is annoying.', chan=sendto)
+
 
 def extract(soupy):
     "dance to avoid memory leaks"
-    #if type(soupy) == unicode:
+    # if type(soupy) == unicode:
     #    return unicode(soupy).encode('utf-8')
-    #return unicode(soupy.extract()).encode('utf-8')
+    # return unicode(soupy.extract()).encode('utf-8')
     if type(soupy) == str:
         return str(soupy)
     return str(soupy.extract())
+
 
 class Bugtracker(object):
     def __init__(self):
@@ -185,10 +189,10 @@ class Bugtracker(object):
             HTTPSHandler(debuglevel=0),
             HTTPCookieProcessor(self.cj)
         )
-        #self.opener.addheaders = [
+        # self.opener.addheaders = [
         #    ('User-agent', ('Mozilla/4.0 (compatible; MSIE 6.0; '
         #                   'Windows NT 5.2; .NET CLR 1.1.4322)'))
-        #]
+        # ]
         self.opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 
         # need this twice - once to set cookies, once to log in...
@@ -199,13 +203,14 @@ class Bugtracker(object):
     def login(self):
         "handle login, populate the cookie jar"
         login_data = bytes(urlencode({
-            'user_name' : self.user,
-            'password' : self.password,
-            'remember_login' : 'on',
-            #'return_to' : None,
+            'user_name': self.user,
+            'password': self.password,
+            'remember_login': 'on',
+            # 'return_to': None,
         }), 'utf-8')
         response = self.opener.open(self.login_page, login_data, timeout=10)
         return ''.join(str(s) for s in response.readlines())
+
     def get_recent(self):
         while True:
             try:
@@ -238,15 +243,17 @@ class Bugtracker(object):
                            })
         soup.decompose()
         return results
+
     def clean_misc(self, event):
         "remove waste of ascii"
-        for k,v in event.items():
+        for k, v in event.items():
             event[k] = str(v)
         if event['status'].endswith(' | 100%'):
             event['status'] = event['status'][:-7]
         if event['status'].endswith(' | 0%'):
             event['status'] = event['status'][:-5]
         return event
+
     def update_history(self):
         self.old_events = set((t['url'], t['date']) for t in self.get_recent())
 
@@ -256,14 +263,16 @@ class MailingList(object):
         "url should include strftime formatting"
         self.name = name
         self.url = url
-        #self.interval = 10
-        #self.next_tick = time.time() + self.interval * 60
+        # self.interval = 10
+        # self.next_tick = time.time() + self.interval * 60
         self.update_history(self.all_events(self.download()))
+
     def download(self):
         try:
             return pull(time.strftime(self.url, time.localtime()))
         except HTTPError:
             return ""
+
     def all_events(self, html):
         "returns (author, title, href)"
         if not html:
@@ -276,16 +285,19 @@ class MailingList(object):
             title = extract(m.a.contents[0]).strip()
             href = extract(m.a['href']).strip()
             yield author, title, href
+
     def update_history(self, events):
         "must be called after new_events()"
         self.history = set()
-        for _,_,href in events:
+        for _, _, href in events:
             self.history.add(href)
+
     def new_events(self, events):
         for author, title, href in events:
             if href in self.history:
                 continue
             yield author, title, href
+
     def pretty(self, event):
         # todo, make less fragile
         author, title, href = event
@@ -293,16 +305,18 @@ class MailingList(object):
         url = time.strftime(self.url, time.localtime())
         url = url.replace('date.html', href)
         return text + ' | ' + str(url)
+
     def tick(self):
         "call every minute, returns pretty lines"
-        #if time.time() < self.next_tick:
+        # if time.time() < self.next_tick:
         #    raise StopIteration
         html = self.download()
         events = self.new_events(self.all_events(html))
         for e in events:
             yield self.pretty(e)
         self.update_history(self.all_events(html))
-        #self.next_tick += self.interval * 60
+        # self.next_tick += self.interval * 60
+
 
 def random_search(query=None):
     search = "https://bugs.archlinux.org/index/proj0?do=index&project=0&search_in_comments=1&search_in_details=1&search_for_all=1&status%%5B%%5D=open&pagenum=%i&string=%s"
@@ -316,7 +330,7 @@ def random_search(query=None):
         soup.decompose()
         return "The search returned no results."
     count = int(count.strip().split(' ')[-1])
-    #i = random.randint(1, count)  # off by one might start here
+    # i = random.randint(1, count)  # off by one might start here
     i = random.randrange(count)
     page = i//20 + 1
     element = (i % 20) + 1
@@ -326,9 +340,10 @@ def random_search(query=None):
         soup = BeautifulSoup(pageN, features=soup_parse)
         body = soup.html.body
     hit = body.find(**{'id': 'tasklist_table'}).findAll('tr')[element]  # off by one?
-    number = extract(hit(**{'class':"task_id"})[0].a.contents[0])
+    number = extract(hit(**{'class': "task_id"})[0].a.contents[0])
     soup.decompose()
     return 'https://bugs.archlinux.org/task/%s' % number
+
 
 def recent_search(query=None):
     #search = "https://bugs.archlinux.org/index/proj0?do=index&project=0&search_in_comments=1&search_in_details=1&search_for_all=1&status%%5B%%5D=open&pagenum=%i&string=%s"
@@ -340,7 +355,12 @@ def recent_search(query=None):
     return_link = False
     while query.startswith('--'):
         proj, _, query = query.partition(' ')
-        proj_lut = {'--all':0, '--arch':1, '--aur':2, '--comm':5, '--pacman':3, '--release':6}
+        proj_lut = {'--all': 0,
+                    '--arch': 1,
+                    '--aur': 2,
+                    '--comm': 5,
+                    '--pacman': 3,
+                    '--release': 6}
         if proj in proj_lut:
             proj_id = proj_lut[proj]
         elif proj == '--closed':
@@ -369,15 +389,16 @@ def recent_search(query=None):
         soup.decompose()
         return "Your search returned no results."
     hit = body.find(**{'id': 'tasklist_table'}).findAll('tr')[1]
-    number = extract(hit(**{'class':"task_id"})[0].a.contents[0])
-    title  = extract(hit(**{'class':"task_id"})[0].a['title'])
+    number = extract(hit(**{'class': "task_id"})[0].a.contents[0])
+    title = extract(hit(**{'class': "task_id"})[0].a['title'])
     soup.decompose()
     return 'https://bugs.archlinux.org/task/%s (%s)' % (number, title)
 
 
 def pretty(*event):
-    #return '!ignore [%s] %s | %s' % event
+    # return '!ignore [%s] %s | %s' % event
     return '[\x02%s\x02, %s] %s |\x0311 %s \x03' % event
+
 
 def check_todo(bugid):
     "hacky scope"
@@ -390,18 +411,21 @@ def check_todo(bugid):
         soup = BeautifulSoup(bughtml, features=soup_parse)
         title = extract(soup.html.head.title.string)
         title = title.split(':')[1].strip()
-        #return '!ignore [not found] %s %s' % (bugpage, title)
+        # return '!ignore [not found] %s %s' % (bugpage, title)
         return '[not found] %s %s' % (bugpage, title)
     except:
         return 'Something is broken...'
+
 
 def call_stdout(cmd):
     spp = subprocess.PIPE
     subp = subprocess.Popen(cmd, shell=False, stdin=None, stdout=spp)
     return str(subp.communicate()[0], 'utf-8')
 
+
 def bofh():
     return call_stdout(['fortune', 'bofh-excuses']).strip().split('\n')[-1].strip().strip('.').lower()
+
 
 def too_quiet():
     t = random.choice(['Closed', 'Comment'])
@@ -409,12 +433,13 @@ def too_quiet():
     p = random.choice(call_stdout(['pacman', '-Slq', 'core']).split('\n'))
     b = bofh()
     u = random.randint(60000, 80000)
-    #return '!ignore [%s] %s | [%s] %s | https://bugs.archlinux.org/task/%i' % (t, m, p, b, u)
+    # return '!ignore [%s] %s | [%s] %s | https://bugs.archlinux.org/task/%i' % (t, m, p, b, u)
     # needs random dev/tu nick
     return '[\x02%s\x02] %s | [%s] %s |\x0311 https://bugs.archlinux.org/task/%i \x03' % (t, m, p, b, u)
 
+
 def polling():
-    redundant = set([])  # Avoid sending similar messages 
+    redundant = set([])  # Avoid sending similar messages
     # in same burst.  Should say "x 3" to indicate.
     noisy = False
     for t in reversed(list(bt.get_recent())):
@@ -430,9 +455,9 @@ def polling():
         redundant.add(summary)
         if 'PLEASE ENTER SUMMARY' in t['status']:
             t['status'] = t['status'].replace('PLEASE ENTER SUMMARY', bofh())
-        t['event']  = t['event'].replace('Comment added', 'Comment')
+        t['event'] = t['event'].replace('Comment added', 'Comment')
         try:
-            bot.send(pretty(t['event'], t['user'], t['status'], t['url']))
+            bot.send(pretty(t['event'], t['user'], t['status'], t['url']), chan=irc_channel)
         except UnicodeEncodeError:
             print('fix unicode')
         time.sleep(1)
@@ -446,6 +471,7 @@ def polling():
     if april_fools and not noisy and random.random() < (poll_interval / 1440.0):
         bot.send(too_quiet())
 
+
 def main():
     global bt, ml, bot
     bt = Bugtracker()
@@ -455,6 +481,7 @@ def main():
     bot = TestBot()
     bot.recurring(poll_interval*60, polling)
     bot.start()
+
 
 if __name__ == '__main__':
     while True:
