@@ -37,7 +37,7 @@ ml = None
 bot = None
 
 irc_host = os.getenv("IRC_HOST", "chat.freenode.net")
-irc_port = os.getenv("IRC_PORT", 6697)
+irc_port = int(os.getenv("IRC_PORT", 6697))
 irc_channel = os.getenv("IRC_CHANNEL", "#archlinux-bug")
 irc_username = os.getenv("IRC_USERNAME", "arch-bugbot")
 nickserv_identify = os.getenv("NICKSERV_IDENTIFY", "")
@@ -490,8 +490,7 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             break
         except:
-            if debug:
-                raise
+            raise
             print('Crashed, restarting.')
         time.sleep(60)
 
