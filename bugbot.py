@@ -57,6 +57,9 @@ class TestBot(irc.bot.SingleServerIRCBot):
                                             irc_username, irc_username,
                                             reconnection_interval=2,
                                             connect_factory=self.ssl_factory)
+        self.connection.set_keepalive(60)
+        self.connection.add_global_handler("ping", self.on_ping)
+
         self.channel = irc_channel
         #if conf.password:
         #    self.server_list[0].password = conf.password
@@ -90,7 +93,10 @@ class TestBot(irc.bot.SingleServerIRCBot):
 
     def on_pubmsg(self, c, e):
         handle_message(False, c, e)
-        
+
+    def on_ping(self, connection, event):
+        connection.pong(event.arguments[0])
+
     def send(self, message, chan=None, mute_override=False):
         print(short_time(), chan, message)
         if debug:
