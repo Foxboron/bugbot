@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import random, time, subprocess
+import ssl
 from itertools import *
 
 import irc
@@ -36,7 +37,7 @@ bot = None
 
 irc_host = 'chat.freenode.net'
 #irc_host = '127.0.0.1'
-irc_port = 6667
+irc_port = 6697
 irc_channel = '#archlinux-bugs'
 irc_username = 'arch-bugbot'
 nickserv_identify = ''
@@ -49,8 +50,13 @@ soup_parse = 'lxml'
 
 class TestBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
+
+        self.ssl_factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
+
         irc.bot.SingleServerIRCBot.__init__(self, [(irc_host, irc_port)],
-            irc_username, irc_username, reconnection_interval=2)
+                                            irc_username, irc_username,
+                                            reconnection_interval=2,
+                                            connect_factory=self.ssl_factory)
         self.channel = irc_channel
         #if conf.password:
         #    self.server_list[0].password = conf.password
