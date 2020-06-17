@@ -3,6 +3,7 @@
 
 import random, time, subprocess
 import ssl
+import os
 from itertools import *
 
 import irc
@@ -35,15 +36,14 @@ bt = None
 ml = None
 bot = None
 
-irc_host = 'chat.freenode.net'
-#irc_host = '127.0.0.1'
-irc_port = 6697
-irc_channel = '#archlinux-bugs'
-irc_username = 'arch-bugbot'
-nickserv_identify = ''
-bugtracker_user = ''
-bugtracker_pass = ''
-admin_nicks = ['keenerd', 'falconindy']
+irc_host = os.getenv("IRC_HOST", "chat.freenode.net")
+irc_port = os.getenv("IRC_PORT", 6697)
+irc_channel = os.getenv("IRC_CHANNEL", "#archlinux-bug")
+irc_username = os.getenv("IRC_USERNAME", "arch-bugbot")
+nickserv_identify = os.getenv("NICKSERV_IDENTIFY", "")
+bugtracker_user = os.getenv("BUGTRACKER_USER", "")
+bugtracker_pass = os.getenv("BUGTRACKER_PASS", "")
+admin_nicks = os.getenv("ADMIN_NICKS", "").split(",")
 poll_interval = 10  # minutes
 april_fools = False
 soup_parse = 'lxml'
