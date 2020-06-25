@@ -152,6 +152,8 @@ def handle_message(priv, connection, event):
         bot.send(give + check_todo(text), chan=sendto)
     if command == 'random':
         bot.send(give + random_search(text), chan=sendto)
+    if command == 'join':
+        connection.join(irc_channel)
     if command == 'search':
         bot.send(give + recent_search(text), chan=sendto)
     if nick not in admin_nicks:
