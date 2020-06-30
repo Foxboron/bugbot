@@ -464,12 +464,12 @@ def polling():
             print('fix unicode')
         time.sleep(1)
     # weird place to do this, fix scheduling
-    for m in ml.tick():
-        try:
-            bot.send(m, irc_channel)
-        except UnicodeEncodeError:
-            print('fix unicode')
-        time.sleep(1)
+    # for m in ml.tick():
+    #     try:
+    #         bot.send(m, irc_channel)
+    #     except UnicodeEncodeError:
+    #         print('fix unicode')
+    #     time.sleep(1)
     if april_fools and not noisy and random.random() < (poll_interval / 1440.0):
         bot.send(too_quiet())
 
@@ -477,9 +477,8 @@ def polling():
 def main():
     global bt, ml, bot
     bt = Bugtracker()
-    ml = MailingList(*mailmen[0])
-    if not debug:
-        bt.update_history()
+    # ml = MailingList(*mailmen[0])
+    # bt.update_history()
     bot = TestBot()
     bot.recurring(poll_interval*60, polling)
     bot.start()
