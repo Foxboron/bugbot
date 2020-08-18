@@ -477,8 +477,7 @@ def polling():
 def main():
     global bt, ml, bot
     bt = Bugtracker()
-    # ml = MailingList(*mailmen[0])
-    # bt.update_history()
+    bt.update_history()
     bot = TestBot()
     bot.recurring(poll_interval*60, polling)
     bot.start()
