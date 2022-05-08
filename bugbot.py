@@ -56,7 +56,6 @@ class TestBot(irc.bot.SingleServerIRCBot):
 
         irc.bot.SingleServerIRCBot.__init__(self, [(irc_host, irc_port)],
                                             irc_username, irc_username,
-                                            reconnection_interval=2,
                                             connect_factory=self.ssl_factory)
         self.connection.set_keepalive(60)
         self.connection.add_global_handler("ping", self.on_ping)
